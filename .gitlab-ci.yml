@@ -1,0 +1,98 @@
+variables:
+  FAAS_CI_DEPLOY_SCRIPT: http://qhstatic.oss-cn-hangzhou.aliyuncs.com/fe/faas/deploy/ci_deploy.js
+  REPO_URL: $CI_REPOSITORY_URL
+  COMMIT_SHA: $CI_COMMIT_SHA
+stages:
+#  - upgrade
+  - build
+  - deploy
+#  - deploy-kjl
+#   - deploy-coohom
+#
+#upgrade-config:
+#  stage: upgrade
+#  only:
+#    refs:
+#      - master
+#    changes:
+#      - s.yml
+#  image: registry.qunhequnhe.com/infra/base-builder-v12:latest
+#  variables:
+#      STAGE: upgrade
+#  tags:
+#    - kube-runner
+#  script:
+#    - yarn
+#    - wget -O faas_ci_deploy.js $FAAS_CI_DEPLOY_SCRIPT
+#    - chmod +x faas_ci_deploy.js
+#    - node ./faas_ci_deploy.js stage=$STAGE repo=$REPO_URL commitSha=$COMMIT_SHA
+#
+build-push-image:
+  stage: build
+  only:
+    refs:
+      - master
+  image: registry.qunhequnhe.com/i18n/infra/toolbox:1.0.0
+  variables:
+      STAGE: build
+  tags:
+    - kube-runner
+  script:
+    - wget -O faas_ci_deploy.js $FAAS_CI_DEPLOY_SCRIPT
+    - chmod +x faas_ci_deploy.js
+    - node ./faas_ci_deploy.js stage=$STAGE repo=$REPO_URL commitSha=$COMMIT_SHA
+
+
+deploy-sit:
+  stage: deploy
+  only:
+    refs:
+      - master
+  image: registry.qunhequnhe.com/i18n/toolbox:2.1.6
+  variables:
+    STAGE: deploy
+    ENV: sit
+  tags:
+    - kube-runner
+  script:
+      - wget -O faas_ci_deploy.js $FAAS_CI_DEPLOY_SCRIPT
+      - chmod +x faas_ci_deploy.js
+      - node ./faas_ci_deploy.js stage=$STAGE repo=$REPO_URL commitSha=$COMMIT_SHA env=$ENV
+#
+#deploy-prod-test:
+#  stage: deploy-kjl
+#  image: registry.qunhequnhe.com/i18n/toolbox:2.1.6
+#  allow_failure: false
+#  only:
+#    refs:
+#      - master
+#  variables:
+#    STAGE: deploy-kjl
+#    ENV: prod
+#    ISBETA: y
+#  tags:
+#    - kube-runner
+#  script:
+#    - wget -O faas_ci_deploy.js $FAAS_CI_DEPLOY_SCRIPT
+#    - chmod +x faas_ci_deploy.js
+#    - node ./faas_ci_deploy.js stage=$STAGE repo=$REPO_URL commitSha=$COMMIT_SHA env=$ENV isBeta=$ISBETA
+#  when: manual
+#
+#deploy-prod:
+#  stage: deploy-kjl
+#  image: registry.qunhequnhe.com/i18n/toolbox:2.1.6
+#  allow_failure: false
+#  only:
+#    refs:
+#      - master
+#  variables:
+#     STAGE: deploy-kjl
+#     ENV: prod
+#  tags:
+#    - kube-runner
+#  script:
+#    - wget -O faas_ci_deploy.js $FAAS_CI_DEPLOY_SCRIPT
+#    - chmod +x faas_ci_deploy.js
+#    - node ./faas_ci_deploy.js stage=$STAGE repo=$REPO_URL commitSha=$COMMIT_SHA env=$ENV
+#  when: manual
+
